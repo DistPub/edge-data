@@ -1,6 +1,6 @@
 import './App.css';
 import React from 'react';
-import {getBasicInfo, getContentInfo, getLinkInfo} from "./fetches";
+import {getBasicInfo, getBusinessInfo, getContentInfo, getLinkInfo} from "./fetches";
 
 function getPriceInfo(prices) {
   return prices.map(item => {
@@ -58,6 +58,7 @@ function App() {
   const [basicInfo, setBasicInfo] = React.useState({})
   const [contentInfo, setContentInfo] = React.useState({})
   const [linkInfo, setLinkInfo] = React.useState({})
+  const [businessInfo, setBusinessInfo] = React.useState({})
   return <><h1>星图数据</h1>
     <div className="basic">
       <h2>基本信息</h2>
@@ -70,7 +71,10 @@ function App() {
           douyin_pc_link: `https://www.douyin.com/user/${baseInfo.sec_uid}`,
           industry_tags: marketingInfo.industry_tags.map(item => item.split('-')[0]),
           price_info: getPriceInfo(marketingInfo.price_info.filter(item => item.enable && item.is_open && item.need_price && item.task_category == 1)),
-          self_intro: platformChannelInfo.self_intro,
+          self_intro: platformChannelInfo.card_info.self_intro,
+          email: platformChannelInfo.card_info.email,
+          phone: platformChannelInfo.card_info.phone,
+          wechat: platformChannelInfo.card_info.wechat,
         })
       }}>获取</button>
       <div className="result">
@@ -108,6 +112,23 @@ function App() {
       }}>获取</button>
       <div className="result">
         {JSON.stringify(linkInfo)}
+      </div>
+    </div>
+    <div className="link">
+      <h2>商业能力</h2>
+      <button onClick={async () => {
+        let res = await getBusinessInfo(id)
+        setBusinessInfo({
+          link_star_index: Math.trunc(res.link_star_index.value),
+          link_spread_index: Math.trunc(res.link_spread_index.value),
+          link_shopping_index: Math.trunc(res.link_shopping_index.value),
+          link_convert_index: Math.trunc(res.link_convert_index.value),
+          cp_index: Math.trunc(res.cp_index.value),
+          cooperate_index: Math.trunc(res.cooperate_index.value),
+        })
+      }}>获取</button>
+      <div className="result">
+        {JSON.stringify(businessInfo)}
       </div>
     </div>
   </>

@@ -11,7 +11,7 @@ export async function getBasicInfo(id) {
         "mode": "cors",
         "credentials": "include"
     });
-    let authorPlatformChannelInfo = await fetch(`https://www.xingtu.cn/gw/api/author/get_author_platform_channel_info_v2?platform_source=1&platform_channel=1&o_author_id=${id}`, {
+    let authorPlatformChannelInfo = await fetch(`https://www.xingtu.cn/gw/api/gauthor/author_get_business_card_info?o_author_id=${id}`, {
         "method": "GET",
         "mode": "cors",
         "credentials": "include"
@@ -42,4 +42,13 @@ export async function getLinkInfo(id) {
         "credentials": "include"
     });
     return await authorAudienceDist.json()
+}
+
+export async function getBusinessInfo(id) {
+    let res = await fetch(`https://www.xingtu.cn/gw/api/data_sp/get_author_link_info?o_author_id=${id}&platform_source=1&platform_channel=1&industy_tag=0`, {
+        "method": "GET",
+        "mode": "cors",
+        "credentials": "include"
+    });
+    return await res.json()
 }
