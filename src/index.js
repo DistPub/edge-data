@@ -5,6 +5,8 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 import {createBrowserRouter, RouterProvider} from "react-router-dom";
 import Smite from "./smite";
+import Xingtu from "./xingtu/App";
+
 
 const router = createBrowserRouter([
     {
@@ -14,6 +16,10 @@ const router = createBrowserRouter([
     {
         path: "/smite",
         element: <Smite/>,
+    },
+    {
+        path: "/xingtu",
+        element: <Xingtu/>,
     },
 ]);
 
