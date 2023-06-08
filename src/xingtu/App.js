@@ -1,6 +1,6 @@
 import './App.css';
 import React from 'react';
-import {getBasicInfo, getContentInfo} from "./fetches";
+import {getBasicInfo, getContentInfo, getLinkInfo} from "./fetches";
 
 function getPriceInfo(prices) {
   return prices.map(item => {
@@ -44,10 +44,20 @@ function getLatest15Description(items) {
   return [play_min, play_max, getPercent(famous/items.length)]
 }
 
+function getLinkDist(dist) {
+  let total = dist.distribution_list.reduce((c, i) => c + i.distribution_value, 0)
+  let result = {}
+  for (let item of dist.distribution_list) {
+    result[item.distribution_key] = getPercent(item.distribution_value/total)
+  }
+  return result
+}
+
 function App() {
   const [id, setId] = React.useState('')
   const [basicInfo, setBasicInfo] = React.useState({})
   const [contentInfo, setContentInfo] = React.useState({})
+  const [linkInfo, setLinkInfo] = React.useState({})
   return <><h1>星图数据</h1>
     <div className="basic">
       <h2>基本信息</h2>
@@ -83,6 +93,21 @@ function App() {
       }}>获取</button>
       <div className="result">
         {JSON.stringify(contentInfo)}
+      </div>
+    </div>
+    <div className="link">
+      <h2>连接用户</h2>
+      <button onClick={async () => {
+        let audienceDist = await getLinkInfo(id)
+        setLinkInfo({
+          city: getLinkDist(...audienceDist.distributions.filter(item => item.origin_type == 8)),
+          gender: getLinkDist(...audienceDist.distributions.filter(item => item.origin_type == 0)),
+          group: getLinkDist(...audienceDist.distributions.filter(item => item.origin_type == 10)),
+          device: getLinkDist(...audienceDist.distributions.filter(item => item.origin_type == 3)),
+        })
+      }}>获取</button>
+      <div className="result">
+        {JSON.stringify(linkInfo)}
       </div>
     </div>
   </>

@@ -34,3 +34,12 @@ export async function getContentInfo(id) {
     });
     return [await authorSpreadInfo.json(), await authorShowItems.json()]
 }
+
+export async function getLinkInfo(id) {
+    let authorAudienceDist = await fetch(`https://www.xingtu.cn/gw/api/data_sp/get_author_fans_distribution?o_author_id=${id}&platform_source=1&author_type=1`, {
+        "method": "GET",
+        "mode": "cors",
+        "credentials": "include"
+    });
+    return await authorAudienceDist.json()
+}
