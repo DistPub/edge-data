@@ -28,6 +28,17 @@ export async function getFans(db, pid) {
     await cacheData(db, prefix, pid, data)
     return data.data
 }
+export async function getFansSummary(db, pid) {
+    let prefix = 'fans_summary'
+    let data = await cachedData(db, prefix, pid)
+
+    if (data) return data.data
+
+    let response = await fetch(`https://pgy.xiaohongshu.com/api/solar/kol/dataV3/fansSummary?userId=${pid}`)
+    data = await response.json()
+    await cacheData(db, prefix, pid, data)
+    return data.data
+}
 
 async function cachedData(db, prefix, pid) {
     let key = `${prefix}_${pid}`
