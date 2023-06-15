@@ -6,6 +6,7 @@ import reportWebVitals from './reportWebVitals';
 import {createBrowserRouter, RouterProvider} from "react-router-dom";
 import Smite from "./smite";
 import Xingtu from "./xingtu/App";
+import Xiaohongshu from "./xiaohongshu/App";
 
 
 const router = createBrowserRouter([
@@ -20,6 +21,10 @@ const router = createBrowserRouter([
     {
         path: "/xingtu",
         element: <Xingtu/>,
+    },
+    {
+        path: "/xiaohongshu",
+        element: <Xiaohongshu/>,
     },
 ]);
 
