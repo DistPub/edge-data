@@ -53,6 +53,18 @@ export async function getKolTag(db, pid) {
     return data.data
 }
 
+export async function getNotes(db, pid) {
+    let prefix = 'notes'
+    let data = await cachedData(db, prefix, pid)
+
+    if (data) return data.data
+
+    let response = await fetch(`https://pgy.xiaohongshu.com/api/solar/kol/dataV2/notesDetail?advertiseSwitch=1&orderType=1&pageNumber=1&pageSize=8&userId=${pid}&noteType=4`)
+    data = await response.json()
+    await cacheData(db, prefix, pid, data)
+    return data.data
+}
+
 async function cachedData(db, prefix, pid) {
     let key = `${prefix}_${pid}`
     try {

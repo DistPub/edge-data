@@ -1,5 +1,5 @@
 import React from "react";
-import {getDataSummary, getFans, getFansSummary, getKolTag, isLoginOk} from "./fetches";
+import {getDataSummary, getFans, getFansSummary, getKolTag, getNotes, isLoginOk} from "./fetches";
 import {PouchDBContext} from "./context";
 
 function getAge(ages) {
@@ -40,6 +40,17 @@ function getCities(cities) {
     return [sh, bj, gz, sz1, hz, cd, nj, tj, cq, wh, sz2]
 }
 
+function getContentTags(items) {
+    let results = new Set()
+    items.forEach(item => {
+        if (!item.title) return
+        if (item.title.includes('猫')) results.add('猫')
+        if (item.title.includes('狗')) results.add('狗')
+        if (item.title.includes('犬')) results.add('狗')
+    })
+    return [...results]
+}
+
 function App() {
     let [loginOk, setLoginOk] = React.useState(false)
     let [pid, setPid] = React.useState("")
@@ -47,6 +58,7 @@ function App() {
     let [fans, setFans] = React.useState({})
     let [fansSummary, setFansSummary] = React.useState({})
     let [kolTag, setKolTag] = React.useState({})
+    let [notes, setNotes] = React.useState({})
     const db = React.useContext(PouchDBContext);
     React.useEffect(() => {
         async function check() {
@@ -101,6 +113,16 @@ function App() {
             }}>确定</button>
             <div className="result">
                 {JSON.stringify(kolTag)}
+            </div>
+            <h2>notes</h2>
+            <button onClick={async () => {
+                let info = await getNotes(db, pid)
+                setNotes({
+                    tags: getContentTags(info.list)
+                })
+            }}>确定</button>
+            <div className="result">
+                {JSON.stringify(notes)}
             </div>
         </>
     } else {
