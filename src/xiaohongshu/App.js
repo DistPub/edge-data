@@ -1,5 +1,5 @@
 import React from "react";
-import {getDataSummary, getFans, getFansSummary, isLoginOk} from "./fetches";
+import {getDataSummary, getFans, getFansSummary, getKolTag, isLoginOk} from "./fetches";
 import {PouchDBContext} from "./context";
 
 function getAge(ages) {
@@ -46,6 +46,7 @@ function App() {
     let [dataSummary, setDataSummary] = React.useState({})
     let [fans, setFans] = React.useState({})
     let [fansSummary, setFansSummary] = React.useState({})
+    let [kolTag, setKolTag] = React.useState({})
     const db = React.useContext(PouchDBContext);
     React.useEffect(() => {
         async function check() {
@@ -90,6 +91,16 @@ function App() {
             }}>确定</button>
             <div className="result">
                 {JSON.stringify(fansSummary)}
+            </div>
+            <h2>kol tag</h2>
+            <button onClick={async () => {
+                let info = await getKolTag(db, pid)
+                setKolTag({
+                    tags: info.map(x => x.name)
+                })
+            }}>确定</button>
+            <div className="result">
+                {JSON.stringify(kolTag)}
             </div>
         </>
     } else {
