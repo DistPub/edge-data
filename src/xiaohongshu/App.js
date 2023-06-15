@@ -2,6 +2,7 @@ import React from "react";
 import {getBlogger, getDataSummary, getFans, getFansSummary, getKolTag, getNotes, isLoginOk} from "./fetches";
 import {PouchDBContext} from "./context";
 import {useLocation} from "react-router-dom";
+import {CircularProgressWithLabel} from "../components";
 
 function getAge(ages) {
     return ages.filter(
@@ -161,6 +162,7 @@ function App() {
                 if (pids === '')
                     return alert('请输入至少一个pid')
             }}>确定</button>
+            <CircularProgressWithLabel value={100} />
         </>
     } else {
         view = <h2>小红书登录失败</h2>
