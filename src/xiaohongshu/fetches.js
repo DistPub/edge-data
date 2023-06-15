@@ -65,6 +65,18 @@ export async function getNotes(db, pid) {
     return data.data
 }
 
+export async function getBlogger(db, pid) {
+    let prefix = 'blogger'
+    let data = await cachedData(db, prefix, pid)
+
+    if (data) return data.data
+
+    let response = await fetch(`https://pgy.xiaohongshu.com/api/solar/cooperator/user/blogger/${pid}`)
+    data = await response.json()
+    await cacheData(db, prefix, pid, data)
+    return data.data
+}
+
 async function cachedData(db, prefix, pid) {
     let key = `${prefix}_${pid}`
     try {

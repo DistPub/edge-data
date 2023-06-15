@@ -1,5 +1,5 @@
 import React from "react";
-import {getDataSummary, getFans, getFansSummary, getKolTag, getNotes, isLoginOk} from "./fetches";
+import {getBlogger, getDataSummary, getFans, getFansSummary, getKolTag, getNotes, isLoginOk} from "./fetches";
 import {PouchDBContext} from "./context";
 
 function getAge(ages) {
@@ -40,13 +40,19 @@ function getCities(cities) {
     return [sh, bj, gz, sz1, hz, cd, nj, tj, cq, wh, sz2]
 }
 
-function getContentTags(items) {
+function getContentTags(items, from='title') {
     let results = new Set()
     items.forEach(item => {
-        if (!item.title) return
-        if (item.title.includes('猫')) results.add('猫')
-        if (item.title.includes('狗')) results.add('狗')
-        if (item.title.includes('犬')) results.add('狗')
+        if (from==='title') {
+            if (!item.title) return
+            if (item.title.includes('猫')) results.add('猫')
+            if (item.title.includes('狗')) results.add('狗')
+            if (item.title.includes('犬')) results.add('狗')
+        } else {
+            if (item.taxonomy1Tag!== '宠物') return
+            if (item.taxonomy2Tags.includes('猫')) results.add('猫')
+            if (item.taxonomy2Tags.includes('狗')) results.add('狗')
+        }
     })
     return [...results]
 }
@@ -59,6 +65,7 @@ function App() {
     let [fansSummary, setFansSummary] = React.useState({})
     let [kolTag, setKolTag] = React.useState({})
     let [notes, setNotes] = React.useState({})
+    let [blogger, setBlogger] = React.useState({})
     const db = React.useContext(PouchDBContext);
     React.useEffect(() => {
         async function check() {
@@ -123,6 +130,21 @@ function App() {
             }}>确定</button>
             <div className="result">
                 {JSON.stringify(notes)}
+            </div>
+            <h2>blogger</h2>
+            <button onClick={async () => {
+                let info = await getBlogger(db, pid)
+                setBlogger({
+                    tags: getContentTags(info.contentTags, 'blogger'),
+                    interMidNum: info.interMidNum,
+                    clickMidNum: info.clickMidNum,
+                    videoPrice: info.videoPrice,
+                    picturePrice: info.picturePrice,
+                    redId: info.redId
+                })
+            }}>确定</button>
+            <div className="result">
+                {JSON.stringify(blogger)}
             </div>
         </>
     } else {
