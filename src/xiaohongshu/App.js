@@ -1,6 +1,7 @@
 import React from "react";
 import {getBlogger, getDataSummary, getFans, getFansSummary, getKolTag, getNotes, isLoginOk} from "./fetches";
 import {PouchDBContext} from "./context";
+import {useLocation} from "react-router-dom";
 
 function getAge(ages) {
     return ages.filter(
@@ -58,6 +59,7 @@ function getContentTags(items, from='title') {
 }
 
 function App() {
+    let search = new URLSearchParams(useLocation().search)
     let [loginOk, setLoginOk] = React.useState(false)
     let [pid, setPid] = React.useState("")
     let [dataSummary, setDataSummary] = React.useState({})
@@ -66,6 +68,7 @@ function App() {
     let [kolTag, setKolTag] = React.useState({})
     let [notes, setNotes] = React.useState({})
     let [blogger, setBlogger] = React.useState({})
+    let [pids, setPids] = React.useState('')
     const db = React.useContext(PouchDBContext);
     React.useEffect(() => {
         async function check() {
@@ -74,10 +77,8 @@ function App() {
         check()
     }, [])
 
-    let view = null
-    if (loginOk) {
-        view = <><h2>小红书登录成功</h2>
-            <h2>data summary</h2>
+    let debug = <>
+        <h2>data summary</h2>
             <input type="text" placeholder="请输入小红书id" value={pid} onChange={event => setPid(event.target.value)}></input>
             <button onClick={async () => {
                 let info = await getDataSummary(db, pid)
@@ -146,6 +147,20 @@ function App() {
             <div className="result">
                 {JSON.stringify(blogger)}
             </div>
+        </>
+
+    let view = null
+    if (loginOk) {
+        view = <><h2>小红书登录成功</h2>
+            {search.get('debug') && debug}
+            <h2>批量导出数据</h2>
+            <div><textarea placeholder='请输入pid，一行一个' value={pids} onChange={
+                event => setPids(event.target.value)
+            }></textarea></div>
+            <button onClick={()=>{
+                if (pids === '')
+                    return alert('请输入至少一个pid')
+            }}>确定</button>
         </>
     } else {
         view = <h2>小红书登录失败</h2>
