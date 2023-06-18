@@ -1,7 +1,10 @@
 import PouchDB from "pouchdb-browser";
 import Worker from 'worker-pouch';
-import React from "react";
 
 PouchDB.adapter('worker', Worker);
-let db = new PouchDB('xiaohongshu', {adapter: 'worker'})
-export const PouchDBContext = React.createContext(db);
+export const db = new PouchDB('xiaohongshu', {adapter: 'worker'})
+
+await window.dshell.init();
+export const shell = window.dshell;
+
+export const fetch = window.edgeFetch;

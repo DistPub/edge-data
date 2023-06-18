@@ -1,8 +1,8 @@
 import React from "react";
 import {getBlogger, getDataSummary, getFans, getFansSummary, getKolTag, getNotes, isLoginOk} from "./fetches";
-import {PouchDBContext} from "./context";
 import {useLocation} from "react-router-dom";
 import {CircularProgressWithLabel} from "../components";
+import {shell} from './context'
 
 function getAge(ages) {
     return ages.filter(
@@ -59,6 +59,12 @@ function getContentTags(items, from='title') {
     return [...results]
 }
 
+function makeFlow(ids) {
+    let action = shell.Action
+        .Ping
+    return action
+}
+
 function App() {
     let search = new URLSearchParams(useLocation().search)
     let [loginOk, setLoginOk] = React.useState(false)
@@ -70,7 +76,6 @@ function App() {
     let [notes, setNotes] = React.useState({})
     let [blogger, setBlogger] = React.useState({})
     let [pids, setPids] = React.useState('')
-    const db = React.useContext(PouchDBContext);
     React.useEffect(() => {
         async function check() {
             setLoginOk(await isLoginOk())
@@ -82,7 +87,7 @@ function App() {
         <h2>data summary</h2>
             <input type="text" placeholder="请输入小红书id" value={pid} onChange={event => setPid(event.target.value)}></input>
             <button onClick={async () => {
-                let info = await getDataSummary(db, pid)
+                let info = await getDataSummary(pid)
                 setDataSummary({
                     pictureReadCost: info.pictureReadCost,
                     videoReadCost: info.videoReadCost
@@ -93,7 +98,7 @@ function App() {
             </div>
             <h2>fans</h2>
             <button onClick={async () => {
-                let info = await getFans(db, pid)
+                let info = await getFans(pid)
                 setFans({
                     age: getAge(info.ages),
                     cities: getCities(info.cities),
@@ -105,7 +110,7 @@ function App() {
             </div>
             <h2>fans summary</h2>
             <button onClick={async () => {
-                let info = await getFansSummary(db, pid)
+                let info = await getFansSummary(pid)
                 setFansSummary({
                     fansGrowthRate: info.fansGrowthRate
                 })
@@ -115,7 +120,7 @@ function App() {
             </div>
             <h2>kol tag</h2>
             <button onClick={async () => {
-                let info = await getKolTag(db, pid)
+                let info = await getKolTag(pid)
                 setKolTag({
                     tags: info.map(x => x.name)
                 })
@@ -125,7 +130,7 @@ function App() {
             </div>
             <h2>notes</h2>
             <button onClick={async () => {
-                let info = await getNotes(db, pid)
+                let info = await getNotes(pid)
                 setNotes({
                     tags: getContentTags(info.list)
                 })
@@ -135,7 +140,7 @@ function App() {
             </div>
             <h2>blogger</h2>
             <button onClick={async () => {
-                let info = await getBlogger(db, pid)
+                let info = await getBlogger(pid)
                 setBlogger({
                     tags: getContentTags(info.contentTags, 'blogger'),
                     interMidNum: info.interMidNum,
@@ -158,9 +163,12 @@ function App() {
             <div><textarea placeholder='请输入pid，一行一个' value={pids} onChange={
                 event => setPids(event.target.value)
             }></textarea></div>
-            <button onClick={()=>{
-                if (pids === '')
+            <button onClick={async ()=> {
+                const ids = pids.split('\n').filter(item => item.length > 0)
+                if (!ids.length)
                     return alert('请输入至少一个pid')
+                let response = await shell.exec(makeFlow(ids))
+                console.log(response.json())
             }}>确定</button>
             <CircularProgressWithLabel value={100} />
         </>
