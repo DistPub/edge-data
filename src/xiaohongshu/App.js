@@ -3,65 +3,21 @@ import {getBlogger, getDataSummary, getFans, getFansSummary, getKolTag, getNotes
 import {useLocation} from "react-router-dom";
 import {CircularProgressWithLabel} from "../components";
 import {shell} from './context'
-
-function getAge(ages) {
-    return ages.filter(
-        item => ['18-24', '25-34'].includes(item.group)
-    ).reduce(
-        (a, b) => a + b.percent,
-        0
-    )
-}
-
-function getCities(cities) {
-    let sh = '未知';let bj = '未知';let gz = '未知';let sz1 = '未知';let hz = '未知';let cd = '未知';let nj = '未知';let tj = '未知';let cq = '未知';let wh = '未知';let sz2 = '未知'
-    cities.forEach(province => {
-        if (province['name'] == '上海')
-            sh = province['percent']
-        else if (province['name'] == '北京')
-            bj = province['percent']
-        else if (province['name'] == '广州')
-            gz = province['percent']
-        else if (province['name'] == '深圳')
-            sz1 = province['percent']
-        else if (province['name'] == '杭州')
-            hz = province['percent']
-        else if (province['name'] == '成都')
-            cd = province['percent']
-        else if (province['name'] == '南京')
-            nj = province['percent']
-        else if (province['name'] == '天津')
-            tj = province['percent']
-        else if (province['name'] == '重庆')
-            cq = province['percent']
-        else if (province['name'] == '武汉')
-            wh = province['percent']
-        else if (province['name'] == '苏州')
-            sz2 = province['percent']
-    })
-    return [sh, bj, gz, sz1, hz, cd, nj, tj, cq, wh, sz2]
-}
-
-function getContentTags(items, from='title') {
-    let results = new Set()
-    items.forEach(item => {
-        if (from==='title') {
-            if (!item.title) return
-            if (item.title.includes('猫')) results.add('猫')
-            if (item.title.includes('狗')) results.add('狗')
-            if (item.title.includes('犬')) results.add('狗')
-        } else {
-            if (item.taxonomy1Tag!== '宠物') return
-            if (item.taxonomy2Tags.includes('猫')) results.add('猫')
-            if (item.taxonomy2Tags.includes('狗')) results.add('狗')
-        }
-    })
-    return [...results]
-}
+import {getAge, getCities, getContentTags} from './utils'
+import actions from './actions'
 
 function makeFlow(ids) {
     let action = shell.Action
-        .Ping
+        .updateProgress([ids]) // => [id, id, ...]
+        .InfoFetch.PCollect // => [info, info, ...]
+        .buildExcel(['data', [
+            'pid', 'pictureReadCost', 'videoReadCost',
+            'age', 'sh', 'bj', 'gz', 'sz1', 'hz', 'cd',
+            'nj', 'tj', 'cq', 'wh', 'sz2', 'female',
+            'firstCity', 'fansGrowthRate',
+            'kolTags', 'tags', 'interMidNum', 'clickMidNum',
+            'videoPrice', 'picturePrice', 'redId']])
+        .download(['vendor.xlsx'])
     return action
 }
 
@@ -75,13 +31,32 @@ function App() {
     let [kolTag, setKolTag] = React.useState({})
     let [notes, setNotes] = React.useState({})
     let [blogger, setBlogger] = React.useState({})
-    let [pids, setPids] = React.useState('')
+    let [pids, setPids] = React.useState('5e37051b000000000100ba28')
+    let [fetched, setFetched] = React.useState(0)
+    let [total, setTotal] = React.useState(0)
+    let [percent, setPercent] = React.useState(0)
+
+    function UpdateProgress({meta}, ids) {
+        this.on(`uuid:${meta.downstream.uuid}:InfoFetched`, ({data, direction}) => {
+            if (direction !== 'upstream') return
+            setFetched(old => old + 1)
+            console.log(`fetched ${data.pid}`)
+        })
+        return ids
+    }
     React.useEffect(() => {
         async function check() {
             setLoginOk(await isLoginOk())
         }
         check()
+        shell.installExternalAction(UpdateProgress)
+        shell.installModule(actions)
     }, [])
+    React.useEffect(() => {
+        let data = (fetched/total*100).toFixed(1)
+        if (isNaN(data)) return
+        setPercent(parseFloat(data))
+    }, [fetched, total])
 
     let debug = <>
         <h2>data summary</h2>
@@ -92,7 +67,7 @@ function App() {
                     pictureReadCost: info.pictureReadCost,
                     videoReadCost: info.videoReadCost
                 })
-            }}>确定</button>
+            }}>获取</button>
             <div className="result">
                 {JSON.stringify(dataSummary)}
             </div>
@@ -104,7 +79,7 @@ function App() {
                     cities: getCities(info.cities),
                     female: info.gender.female
                 })
-            }}>确定</button>
+            }}>获取</button>
             <div className="result">
                 {JSON.stringify(fans)}
             </div>
@@ -114,7 +89,7 @@ function App() {
                 setFansSummary({
                     fansGrowthRate: info.fansGrowthRate
                 })
-            }}>确定</button>
+            }}>获取</button>
             <div className="result">
                 {JSON.stringify(fansSummary)}
             </div>
@@ -122,9 +97,9 @@ function App() {
             <button onClick={async () => {
                 let info = await getKolTag(pid)
                 setKolTag({
-                    tags: info.map(x => x.name)
+                    kolTags: info.map(x => x.name)
                 })
-            }}>确定</button>
+            }}>获取</button>
             <div className="result">
                 {JSON.stringify(kolTag)}
             </div>
@@ -132,9 +107,9 @@ function App() {
             <button onClick={async () => {
                 let info = await getNotes(pid)
                 setNotes({
-                    tags: getContentTags(info.list)
+                    notes: getContentTags(info.list)
                 })
-            }}>确定</button>
+            }}>获取</button>
             <div className="result">
                 {JSON.stringify(notes)}
             </div>
@@ -149,7 +124,7 @@ function App() {
                     picturePrice: info.picturePrice,
                     redId: info.redId
                 })
-            }}>确定</button>
+            }}>获取</button>
             <div className="result">
                 {JSON.stringify(blogger)}
             </div>
@@ -165,12 +140,14 @@ function App() {
             }></textarea></div>
             <button onClick={async ()=> {
                 const ids = pids.split('\n').filter(item => item.length > 0)
-                if (!ids.length)
+                setTotal(ids.length)
+                setFetched(0)
+                if (ids.length === 0)
                     return alert('请输入至少一个pid')
                 let response = await shell.exec(makeFlow(ids))
                 console.log(response.json())
-            }}>确定</button>
-            <CircularProgressWithLabel value={100} />
+            }}>导出</button>
+            <CircularProgressWithLabel value={percent} />
         </>
     } else {
         view = <h2>小红书登录失败</h2>
