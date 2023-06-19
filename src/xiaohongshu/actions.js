@@ -50,5 +50,6 @@ async function InfoFetch({meta}, pid) {
     this.emit(`uuid.${meta.uuid}:InfoFetched`, {meta, data: {pid}})
     return result
 }
+Object.defineProperty(InfoFetch, 'name', {value: 'InfoFetch'})
 
 export default [InfoFetch]

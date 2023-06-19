@@ -44,6 +44,8 @@ function App() {
         })
         return ids
     }
+    Object.defineProperty(UpdateProgress, 'name', {value: 'UpdateProgress'})
+
     React.useEffect(() => {
         async function check() {
             setLoginOk(await isLoginOk())
