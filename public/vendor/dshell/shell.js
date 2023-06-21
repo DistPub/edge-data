@@ -1,8 +1,7 @@
 import { log, AsyncFunction, AsyncGeneratorFunction, GeneratorFunction, generateUUID, sleep } from "./utils.js"
-import { collect } from 'https://cdn.jsdelivr.net/npm/streaming-iterables@5.0.3/dist/index.mjs'
 import { ActionHelper, proxyHandler} from "./action-helper.js"
 import ActionResponse from './action-response.js'
-import { itPipe, EventEmitter, cloneDeep } from "./dep.js"
+import { collect, itPipe, EventEmitter, cloneDeep } from "./dep.js"
 
 const UUID_SIZE = 36
 
