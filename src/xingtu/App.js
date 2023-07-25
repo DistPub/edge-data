@@ -1,6 +1,6 @@
 import './App.css';
 import React from 'react';
-import {getBasicInfo, getBusinessInfo, getContentInfo, getLinkInfo} from "./fetches";
+import {getBasicInfo, getBusinessInfo, getContentInfo, getLinkInfo, searchNickName} from "./fetches";
 
 function getPriceInfo(prices) {
   return prices.map(item => {
@@ -59,7 +59,28 @@ function App() {
   const [contentInfo, setContentInfo] = React.useState({})
   const [linkInfo, setLinkInfo] = React.useState({})
   const [businessInfo, setBusinessInfo] = React.useState({})
+  const [searchNick, setSearchNick] = React.useState("")
+  const [searchResults, setSearchResults] = React.useState({})
   return <><h1>星图数据</h1>
+    <div className="search">
+      <h2>搜索昵称</h2>
+      <input type="text" placeholder="请输入昵称" value={searchNick} onChange={event => setSearchNick(event.target.value)} />
+      <button onClick={async () => {
+        let data = await searchNickName(searchNick)
+
+        if (data.authors.length === 0) {
+          alert('没有搜索到任何结果')
+        } else if (data.authors[0].attribute_datas['nick_name'] === searchNick) {
+          setId(data.authors[0].attribute_datas.id)
+          setSearchResults(data.authors[0])
+        } else {
+          alert('没有搜索到这个昵称，只有其他类似结果')
+        }
+      }}>获取</button>
+      <div className="result">
+        {JSON.stringify(searchResults)}
+      </div>
+    </div>
     <div className="basic">
       <h2>基本信息</h2>
       <input type="text" placeholder="请输入星图ID" value={id} onChange={event => setId(event.target.value)}/>

@@ -52,3 +52,25 @@ export async function getBusinessInfo(id) {
     });
     return await res.json()
 }
+
+export async function searchNickName(nick) {
+    let payload = {
+        "scene_param": {
+            "platform_source": 1,
+            "search_scene": 1,
+            "display_scene": 1,
+            "marketing_target": 1,
+            "task_category": 1
+        },
+        "page_param": {"page": 1, "limit": 20},
+        "sort_param": {"sort_type": 2, "sort_field": {"field_name": "score"}},
+        "search_param": {"keyword": nick, "seach_type": 2}
+    }
+    let res = await fetch("https://www.xingtu.cn/gw/api/gsearch/search_for_author_square", {
+        "body": JSON.stringify(payload),
+        "method": "POST",
+        "mode": "cors",
+        "credentials": "include"
+    });
+    return await res.json()
+}
