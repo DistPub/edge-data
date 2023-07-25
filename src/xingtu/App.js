@@ -1,6 +1,13 @@
 import './App.css';
 import React from 'react';
-import {getBasicInfo, getBusinessInfo, getContentInfo, getLinkInfo, searchNickName} from "./fetches";
+import {
+  getAuthorBaseInfo, getAuthorFansDistributionInfo, getAuthorLinkInfo,
+  getAuthorMarketingInfo, getAuthorPlatformChannelInfo, getAuthorShowItems, getAuthorSpreadInfo,
+  searchNickName
+} from "./fetches";
+import {useLocation} from "react-router-dom";
+import {isLoginOk} from "./fetches";
+import {shell} from "../context";
 
 function getPriceInfo(prices) {
   return prices.map(item => {
@@ -54,6 +61,8 @@ function getLinkDist(dist) {
 }
 
 function App() {
+  let search = new URLSearchParams(useLocation().search)
+  let [loginOk, setLoginOk] = React.useState(false)
   const [id, setId] = React.useState('')
   const [basicInfo, setBasicInfo] = React.useState({})
   const [contentInfo, setContentInfo] = React.useState({})
@@ -61,7 +70,17 @@ function App() {
   const [businessInfo, setBusinessInfo] = React.useState({})
   const [searchNick, setSearchNick] = React.useState("")
   const [searchResults, setSearchResults] = React.useState({})
-  return <><h1>星图数据</h1>
+
+  React.useEffect(() => {
+    async function check() {
+      setLoginOk(await isLoginOk())
+    }
+    check()
+    //shell.installExternalAction(UpdateProgress)
+    //shell.installModule(actions)
+  }, [])
+
+  let debug = <>
     <div className="search">
       <h2>搜索昵称</h2>
       <input type="text" placeholder="请输入昵称" value={searchNick} onChange={event => setSearchNick(event.target.value)} />
@@ -85,7 +104,9 @@ function App() {
       <h2>基本信息</h2>
       <input type="text" placeholder="请输入星图ID" value={id} onChange={event => setId(event.target.value)}/>
       <button onClick={async () => {
-        let [baseInfo, marketingInfo, platformChannelInfo] = await getBasicInfo(id)
+        let baseInfo = await getAuthorBaseInfo(id)
+        let marketingInfo = await getAuthorMarketingInfo(id)
+        let platformChannelInfo = await getAuthorPlatformChannelInfo(id)
         setBasicInfo({
           nick_name: baseInfo.nick_name,
           tags_relation: Object.keys(baseInfo.tags_relation),
@@ -105,7 +126,8 @@ function App() {
     <div className="content">
       <h2>内容表现</h2>
       <button onClick={async () => {
-        let [spreadInfo, showItems] = await getContentInfo(id)
+        let spreadInfo = await getAuthorSpreadInfo(id)
+        let showItems = await getAuthorShowItems(id)
         setContentInfo({
           share_avg: spreadInfo.share_avg,
           comment_avg: spreadInfo.comment_avg,
@@ -123,7 +145,7 @@ function App() {
     <div className="link">
       <h2>连接用户</h2>
       <button onClick={async () => {
-        let audienceDist = await getLinkInfo(id)
+        let audienceDist = await getAuthorFansDistributionInfo(id)
         setLinkInfo({
           city: getLinkDist(...audienceDist.distributions.filter(item => item.origin_type == 8)),
           gender: getLinkDist(...audienceDist.distributions.filter(item => item.origin_type == 0)),
@@ -138,7 +160,7 @@ function App() {
     <div className="link">
       <h2>商业能力</h2>
       <button onClick={async () => {
-        let res = await getBusinessInfo(id)
+        let res = await getAuthorLinkInfo(id)
         setBusinessInfo({
           link_star_index: Math.trunc(res.link_star_index.value),
           link_spread_index: Math.trunc(res.link_spread_index.value),
@@ -153,6 +175,13 @@ function App() {
       </div>
     </div>
   </>
+  let view = null
+  if (loginOk) {
+    view = <></>
+  } else {
+    view = <h2>星图登录失败</h2>
+  }
+  return <><h1>星图数据</h1> {view} </>
 }
 
 export default App;

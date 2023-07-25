@@ -2,7 +2,7 @@ import React from "react";
 import {getBlogger, getDataSummary, getFans, getFansSummary, getKolTag, getNotes, isLoginOk} from "./fetches";
 import {useLocation} from "react-router-dom";
 import {CircularProgressWithLabel} from "../components";
-import {shell} from './context'
+import {shell} from '../context'
 import {getAge, getCities, getContentTags} from './utils'
 import actions from './actions'
 
