@@ -62,6 +62,23 @@ export async function getAuthorPlatformChannelInfo(id) {
     return data
 }
 
+
+export async function getAuthorPlatformChannelInfoV2(id) {
+    let prefix = 'author_platform_channel_infov2'
+    let data = await cachedData(db, prefix, id)
+
+    if (data) return data
+
+    let response = await fetch(`https://www.xingtu.cn/gw/api/author/get_author_platform_channel_info_v2?platform_source=1&platform_channel=1&o_author_id=${id}`, {
+        "method": "GET",
+        "mode": "cors",
+        "credentials": "include"
+    });
+    data = await response.json()
+    await cacheData(db, prefix, id, data)
+    return data
+}
+
 export async function getAuthorSpreadInfo(id) {
     let prefix = 'author_spread_info'
     let data = await cachedData(db, prefix, id)

@@ -1,63 +1,31 @@
 import './App.css';
 import React from 'react';
 import {
-  getAuthorBaseInfo, getAuthorFansDistributionInfo, getAuthorLinkInfo,
-  getAuthorMarketingInfo, getAuthorPlatformChannelInfo, getAuthorShowItems, getAuthorSpreadInfo,
+  getAuthorBaseInfo,
+  getAuthorFansDistributionInfo,
+  getAuthorLinkInfo,
+  getAuthorMarketingInfo,
+  getAuthorPlatformChannelInfo, getAuthorPlatformChannelInfoV2,
+  getAuthorShowItems,
+  getAuthorSpreadInfo,
+  isLoginOk,
   searchNickName
 } from "./fetches";
 import {useLocation} from "react-router-dom";
-import {isLoginOk} from "./fetches";
+import {getLatest15Description, getLinkDist, getPercent, getPriceInfo} from "./utils";
 import {shell} from "../context";
+import {CircularProgressWithLabel} from "../components";
+import actions from "./actions";
 
-function getPriceInfo(prices) {
-  return prices.map(item => {
-    return {
-      desc: item.desc,
-      price: item.price,
-    }
-  })
-}
-
-function getPercent(number, fixed=1) {
-  if (number) {
-    return `${(number*100).toFixed(fixed)}%`
-  }
-  return '-%'
-}
-
-function getLatest15Description(items) {
-  let play_min = 0
-  let play_max = 0
-  let famous = 0
-  let first = true;
-
-  for (let item of items) {
-    if (first) {
-      play_min = item.play
-      play_max = item.play
-      first = false
-    }
-    if (item.play < play_min) {
-      play_min = item.play
-    }
-    if (item.play > play_max) {
-      play_max = item.play
-    }
-    if (item.play > 1000*10000) {
-      famous ++
-    }
-  }
-
-  return [play_min, play_max, getPercent(famous/items.length)]
-}
-
-function getLinkDist(dist) {
-  let total = dist.distribution_list.reduce((c, i) => c + i.distribution_value, 0)
-  let result = {}
-  for (let item of dist.distribution_list) {
-    result[item.distribution_key] = getPercent(item.distribution_value/total)
-  }
-  return result
+function makeFlow(nicks) {
+  let action = shell.Action
+      .updateProgress([nicks]) // => [nick, nick, ...]
+      .InfoFetch.PCollect // => [info, info, ...]
+      .buildExcel(['data', [
+        'nickName', 'id', 'status',
+        'wechat', 'self_intro']])
+      .download(['vendor.xlsx'])
+  return action
 }
 
 function App() {
@@ -70,14 +38,34 @@ function App() {
   const [businessInfo, setBusinessInfo] = React.useState({})
   const [searchNick, setSearchNick] = React.useState("")
   const [searchResults, setSearchResults] = React.useState({})
+  let [nicks, setNicks] = React.useState('妈耶是只猫')
+  let [fetched, setFetched] = React.useState(0)
+  let [total, setTotal] = React.useState(0)
+  let [percent, setPercent] = React.useState(0)
+
+  React.useEffect(() => {
+    let data = (fetched/total*100).toFixed(1)
+    if (isNaN(data)) return
+    setPercent(parseFloat(data))
+  }, [fetched, total])
+
+  function UpdateProgress({meta}, nicks) {
+    this.on(`uuid:${meta.downstream.uuid}:InfoFetched`, ({data, direction}) => {
+      if (direction !== 'upstream') return
+      setFetched(old => old + 1)
+      console.log(`fetched ${data.nickName}`)
+    })
+    return nicks
+  }
+  Object.defineProperty(UpdateProgress, 'name', {value: 'UpdateProgress'})
 
   React.useEffect(() => {
     async function check() {
       setLoginOk(await isLoginOk())
     }
     check()
-    //shell.installExternalAction(UpdateProgress)
-    //shell.installModule(actions)
+    shell.installExternalAction(UpdateProgress)
+    shell.installModule(actions)
   }, [])
 
   let debug = <>
@@ -107,13 +95,14 @@ function App() {
         let baseInfo = await getAuthorBaseInfo(id)
         let marketingInfo = await getAuthorMarketingInfo(id)
         let platformChannelInfo = await getAuthorPlatformChannelInfo(id)
+        let platformChannelInfoV2 = await getAuthorPlatformChannelInfoV2(id)
         setBasicInfo({
           nick_name: baseInfo.nick_name,
           tags_relation: Object.keys(baseInfo.tags_relation),
           douyin_pc_link: `https://www.douyin.com/user/${baseInfo.sec_uid}`,
           industry_tags: marketingInfo.industry_tags.map(item => item.split('-')[0]),
           price_info: getPriceInfo(marketingInfo.price_info.filter(item => item.enable && item.is_open && item.need_price && item.task_category == 1)),
-          self_intro: platformChannelInfo.card_info.self_intro,
+          self_intro: platformChannelInfo.card_info.self_intro || platformChannelInfoV2.self_intro,
           email: platformChannelInfo.card_info.email,
           phone: platformChannelInfo.card_info.phone,
           wechat: platformChannelInfo.card_info.wechat,
@@ -177,7 +166,22 @@ function App() {
   </>
   let view = null
   if (loginOk) {
-    view = <></>
+    view = <><h2>星图登录成功</h2>
+      {search.get('debug') && debug}
+      <h2>批量导出数据</h2>
+      <div><textarea placeholder='请输入昵称，一行一个' value={nicks} onChange={
+        event => setNicks(event.target.value)
+      }></textarea></div>
+      <button onClick={async ()=> {
+        const nickNames = nicks.split('\n').filter(item => item.length > 0)
+        setTotal(nickNames.length)
+        setFetched(0)
+        if (nickNames.length === 0)
+          return alert('请输入至少一个昵称')
+        let response = await shell.exec(makeFlow(nickNames))
+        console.log(response.json())
+      }}>导出</button>
+      <CircularProgressWithLabel value={percent} /></>
   } else {
     view = <h2>星图登录失败</h2>
   }

@@ -1,4 +1,4 @@
-async function cachedData(db, prefix, pid) {
+export async function cachedData(db, prefix, pid) {
     let key = `${prefix}_${pid}`
     try {
         let doc = await db.get(key)
@@ -8,7 +8,7 @@ async function cachedData(db, prefix, pid) {
     }
 }
 
-async function cacheData(db, prefix, pid, data) {
+export async function cacheData(db, prefix, pid, data) {
     let key = `${prefix}_${pid}`
     await db.put({_id: key, data: data})
 }
