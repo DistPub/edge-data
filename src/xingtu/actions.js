@@ -16,8 +16,8 @@ async function InfoFetch({meta}, nick) {
         result.id = data.authors[0].attribute_datas.id
 
         data = await getAuthorPlatformChannelInfo(result.id)
-        result.wechat = data.card_info.wechat
-        result.self_intro = data.card_info.self_intro
+        result.wechat = data?.card_info?.wechat
+        result.self_intro = data?.card_info?.self_intro
 
         if (!result.self_intro) {
             data = await getAuthorPlatformChannelInfoV2(result.id)
