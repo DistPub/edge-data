@@ -1,7 +1,12 @@
-import PropTypes from 'prop-types';
+import React from "react";
 import CircularProgress from '@mui/material/CircularProgress';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
+import MuiAlert from '@mui/material/Alert';
+
+export const Alert = React.forwardRef(function Alert(props, ref) {
+    return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
+});
 
 export function CircularProgressWithLabel(props) {
     return (

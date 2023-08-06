@@ -5,6 +5,7 @@ import App from './App';
 import {createBrowserRouter, RouterProvider} from "react-router-dom";
 import Xingtu from "./xingtu/App";
 import Xiaohongshu from "./xiaohongshu/App";
+import Lab from './lab/App'
 
 
 const router = createBrowserRouter([
@@ -19,6 +20,10 @@ const router = createBrowserRouter([
     {
         path: "/xiaohongshu",
         element: <Xiaohongshu/>,
+    },
+    {
+        path: "/lab",
+        element: <Lab/>,
     },
 ]);
 
