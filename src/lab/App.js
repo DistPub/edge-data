@@ -16,6 +16,10 @@ async function loadDocSrc(url, setter) {
         let doc = inspectFunction(module[name])
         delete doc.fn
         if (!doc.parameters) doc.parameters = []
+        else doc.parameters = doc.parameters.map(param => {
+            param.alias = param.parameter
+            return param
+        })
         doc.alias = doc.name
         docs.push(doc)
     }
@@ -68,13 +72,13 @@ export default function App() {
                 </li>)}</ol>
             </li>)}</ul>
             <button onClick={async event => {
-                await cacheData(db, docSrc, 'doc_explain', {docs})
+                await cacheData(db, docSrc, 'doc_explain', docs)
                 openSnackbar('success', '保存成功')
             }}>保存到数据库</button>
             <button onClick={async event => {
                 let cache = await cachedData(db, docSrc, 'doc_explain')
                 if (cache) {
-                    setDocs(cache.docs)
+                    setDocs(cache)
                     openSnackbar('success', '加载成功')
                 } else
                     openSnackbar('warning', '数据库里没有找到')
