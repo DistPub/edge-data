@@ -5,6 +5,7 @@ import {fetch} from "../context"
 import inspectFunction from 'inspect-function'
 import {Snackbar} from "@mui/material";
 import {Alert} from "../components";
+import ActionFetchAPIResult from './ActionFetchAPIResult'
 
 // public internal function
 window.labSDK = {db: db, cacheData: cacheData, cachedData: cachedData, fetch: fetch}
@@ -31,6 +32,12 @@ export default function App() {
     let [open, setOpen] = React.useState(false)
     let [severity, setSeverity] = React.useState('error')
     let [message, setMessage] = React.useState('message')
+    let [actions, setActions] = React.useState([])
+    let [fetch_api_choices, setFetchAPIChoices] = React.useState([])
+
+    React.useEffect(()=>{
+        setFetchAPIChoices(docs.map(doc=>{ return {name: doc.alias, value: doc.name} }))
+    }, [docs])
     function openSnackbar(severity, message) {
         setSeverity(severity)
         setMessage(message)
@@ -83,6 +90,19 @@ export default function App() {
                 } else
                     openSnackbar('warning', '数据库里没有找到')
             }}>尝试从数据库加载</button>
+        </div>
+        <div className="make_flow">
+            <h3>开始获取数据</h3>
+            <button onClick={event => {
+                let newer = [...actions]
+                newer.push({type:'fetch_api', key:newer.length+1})
+                setActions(newer)
+            }}>+请求API获取结果</button>
+
+            <ol id="actions_container">{actions.map(action => {
+                if (action.type === 'fetch_api')
+                    return <li key={action.key}><ActionFetchAPIResult choices={fetch_api_choices}/></li>
+            })}</ol>
         </div>
         <Snackbar open={open} autoHideDuration={6000} onClose={event => setOpen(false)}>
             <Alert severity={severity} sx={{ width: '100%' }}>
