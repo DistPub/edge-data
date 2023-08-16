@@ -6,12 +6,12 @@ import {
   getAuthorMarketingInfo,
   getAuthorPlatformChannelInfo, getAuthorPlatformChannelInfoV2,
   getAuthorShowItems,
-  getAuthorSpreadInfo, isDouyinVerifyOk,
+  getAuthorSpreadInfo, getDouyinPage, isDouyinVerifyOk,
   isLoginOk,
   searchNickName
 } from "./fetches";
 import {useLocation} from "react-router-dom";
-import {getLatest15Description, getLinkDist, getPercent, getPriceInfo} from "./utils";
+import {getDouyinInfo, getLatest15Description, getLinkDist, getPercent, getPriceInfo} from "./utils";
 import {shell} from "../context";
 import {CircularProgressWithLabel} from "../components";
 import actions from "./actions";
@@ -42,6 +42,8 @@ function App() {
   let [fetched, setFetched] = React.useState(0)
   let [total, setTotal] = React.useState(0)
   let [percent, setPercent] = React.useState(0)
+  let [pcLink, setPcLink] = React.useState('')
+  let [douyinInfo, setDouyinInfo] = React.useState({})
 
   React.useEffect(() => {
     let data = (fetched/total*100).toFixed(1)
@@ -108,9 +110,20 @@ function App() {
           phone: platformChannelInfo.card_info.phone,
           wechat: platformChannelInfo.card_info.wechat,
         })
+        setPcLink(`https://www.douyin.com/user/${baseInfo.sec_uid}`)
       }}>获取</button>
       <div className="result">
         {JSON.stringify(basicInfo)}
+      </div>
+      <h2>抖音主页信息</h2>
+      <input type={"text"} placeholder={"请输入pc主页链接"} value={pcLink}
+             onChange={event => setPcLink(event.target.value)}/>
+      <button onClick={async () => {
+        let page = await getDouyinPage(pcLink)
+        setDouyinInfo(getDouyinInfo(page))
+      }}>获取</button>
+      <div className={"result"}>
+        {JSON.stringify(douyinInfo)}
       </div>
     </div>
     <div className="content">

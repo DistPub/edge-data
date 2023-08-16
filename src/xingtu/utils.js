@@ -48,3 +48,13 @@ export function getLinkDist(dist) {
     }
     return result
 }
+
+export function getDouyinInfo(element) {
+    let selector = '#douyin-right-container > div > div > div > div > div > p > '
+    let id_data = element.querySelector(`${selector} span:nth-child(1)`).textContent.split('：')
+    let attribution_data = element.querySelector(`${selector} span:nth-child(2)`).textContent.split('：')
+    return {
+        id: id_data[1],
+        attribution: attribution_data[1]
+    }
+}

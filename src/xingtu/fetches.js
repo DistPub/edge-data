@@ -24,6 +24,23 @@ export async function isLoginOk() {
     return data.status === 1
 }
 
+export async function getDouyinPage(pc_link) {
+    let prefix = 'douyin_info'
+    let data = await cachedData(db, prefix, pc_link)
+
+    if (data) return data
+    let response = await fetch(pc_link, {
+        "method": "GET",
+        "mode": "cors",
+        "credentials": "include"
+    })
+    data = await response.text()
+    let container = document.createElement('div')
+    container.innerHTML = data
+    await cacheData(db, prefix, pc_link, container)
+    return container
+}
+
 export async function getAuthorBaseInfo(id) {
     let prefix = 'author_base_info'
     let data = await cachedData(db, prefix, id)
