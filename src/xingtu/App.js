@@ -6,7 +6,7 @@ import {
   getAuthorMarketingInfo,
   getAuthorPlatformChannelInfo, getAuthorPlatformChannelInfoV2,
   getAuthorShowItems,
-  getAuthorSpreadInfo,
+  getAuthorSpreadInfo, isDouyinVerifyOk,
   isLoginOk,
   searchNickName
 } from "./fetches";
@@ -30,6 +30,7 @@ function makeFlow(nicks) {
 function App() {
   let search = new URLSearchParams(useLocation().search)
   let [loginOk, setLoginOk] = React.useState(false)
+  let [douyinVerifyOk, setDouyinVerifyOk] = React.useState(false)
   const [id, setId] = React.useState('')
   const [basicInfo, setBasicInfo] = React.useState({})
   const [contentInfo, setContentInfo] = React.useState({})
@@ -61,6 +62,7 @@ function App() {
   React.useEffect(() => {
     async function check() {
       setLoginOk(await isLoginOk())
+      setDouyinVerifyOk(await isDouyinVerifyOk())
     }
     check()
     shell.installExternalAction(UpdateProgress)
@@ -163,28 +165,24 @@ function App() {
       </div>
     </div>
   </>
-  let view = null
-  if (loginOk) {
-    view = <><h2>星图登录成功</h2>
-      {search.get('debug') && debug}
-      <h2>批量导出数据</h2>
-      <div><textarea placeholder='请输入昵称，一行一个' value={nicks} onChange={
-        event => setNicks(event.target.value)
-      }></textarea></div>
-      <button onClick={async ()=> {
-        const nickNames = nicks.split('\n').filter(item => item.length > 0)
-        setTotal(nickNames.length)
-        setFetched(0)
-        if (nickNames.length === 0)
-          return alert('请输入至少一个昵称')
-        let response = await shell.exec(makeFlow(nickNames))
-        console.log(response.json())
-      }}>导出</button>
-      <CircularProgressWithLabel value={percent} /></>
-  } else {
-    view = <h2>星图登录失败</h2>
-  }
-  return <><h1>星图数据</h1> {view} </>
+  return <><h1>星图数据</h1>
+    <h2>星图登录 { loginOk ? "成功" : "失败" }</h2>
+    <h2>抖音主页验证 { douyinVerifyOk ? "成功" : "失败" }</h2>
+    {search.get('debug') && debug}
+    <h2>批量导出数据</h2>
+    <div><textarea placeholder='请输入昵称，一行一个' value={nicks} onChange={
+      event => setNicks(event.target.value)
+    }></textarea></div>
+    <button onClick={async ()=> {
+      const nickNames = nicks.split('\n').filter(item => item.length > 0)
+      setTotal(nickNames.length)
+      setFetched(0)
+      if (nickNames.length === 0)
+        return alert('请输入至少一个昵称')
+      let response = await shell.exec(makeFlow(nickNames))
+      console.log(response.json())
+    }}>导出</button>
+    <CircularProgressWithLabel value={percent} /></>
 }
 
 export default App;

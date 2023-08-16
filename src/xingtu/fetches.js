@@ -2,6 +2,18 @@ import {db} from './context'
 import {fetch} from "../context";
 import {cachedData, cacheData} from '../cache';
 
+export async function isDouyinVerifyOk() {
+    let response = await fetch("https://www.douyin.com/user/MS4wLjABAAAAKEwyE73s1rSCzBML8w2B3l_qpr0m9EzgBOZCRgBYpmQ", {
+        "method": "GET",
+        "mode": "cors",
+        "credentials": "include"
+    })
+    let data = await response.text()
+    let container = document.createElement('div')
+    container.innerHTML = data
+    return container.querySelector('title').innerText !== '验证码中间页'
+}
+
 export async function isLoginOk() {
     let response = await fetch("https://www.xingtu.cn/gw/api/demander/info", {
         "method": "GET",
