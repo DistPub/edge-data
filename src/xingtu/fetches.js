@@ -24,6 +24,30 @@ export async function isLoginOk() {
     return data.status === 1
 }
 
+export async function getAuthorDailyFans(id) {
+    let today = new Date()
+    let yesterday = new Date(today.getTime())
+    yesterday.setDate(today.getDate() - 1)
+    let month_ago = new Date(yesterday.getTime())
+    month_ago.setMonth(yesterday.getMonth() - 1)
+    let start = month_ago.toISOString().split('T')[0]
+    let end = yesterday.toISOString().split('T')[0]
+
+    let prefix = `get_author_daily_fans_${end}`
+    let data = await cachedData(db, prefix, id)
+    if(data) return data
+
+
+    let response = await fetch(`https://www.xingtu.cn/gw/api/data_sp/get_author_daily_fans?author_id=${id}&platform_source=1&start_date=${start}&end_date=${end}&author_type=1`, {
+        "method": "GET",
+        "mode": "cors",
+        "credentials": "include"
+    });
+    data = await response.json()
+    await cacheData(db, prefix, id, data)
+    return data
+}
+
 export async function getDouyinPage(pc_link) {
     let prefix = 'douyin_info'
     let data = await cachedData(db, prefix, pc_link)
@@ -35,10 +59,8 @@ export async function getDouyinPage(pc_link) {
         "credentials": "include"
     })
     data = await response.text()
-    let container = document.createElement('div')
-    container.innerHTML = data
-    await cacheData(db, prefix, pc_link, container)
-    return container
+    await cacheData(db, prefix, pc_link, data)
+    return data
 }
 
 export async function getAuthorBaseInfo(id) {
@@ -108,14 +130,14 @@ export async function getAuthorPlatformChannelInfoV2(id) {
     return data
 }
 
-export async function getAuthorSpreadInfo(id) {
-    let prefix = 'author_spread_info'
+export async function getAuthorSpreadInfo(id, type=2) {
+    let prefix = `author_spread_info_${type}`
     let data = await cachedData(db, prefix, id)
 
     if (data) return data
 
     let response = await fetch(`https://www.xingtu.cn/gw/api/data_sp/get_author_spread_info?o_author_id=${id}` +
-        "&platform_source=1&platform_channel=1&range=2&type=2&only_assign=true", {
+        `&platform_source=1&platform_channel=1&range=2&type=${type}&only_assign=true`, {
         "method": "GET",
         "mode": "cors",
         "credentials": "include"

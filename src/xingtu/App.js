@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  getAuthorBaseInfo,
+  getAuthorBaseInfo, getAuthorDailyFans,
   getAuthorFansDistributionInfo,
   getAuthorLinkInfo,
   getAuthorMarketingInfo,
@@ -11,7 +11,15 @@ import {
   searchNickName
 } from "./fetches";
 import {useLocation} from "react-router-dom";
-import {getDouyinInfo, getLatest15Description, getLinkDist, getPercent, getPriceInfo} from "./utils";
+import {
+  getDouyinInfo,
+  getFansIndex,
+  getLatest15Description,
+  getLinkDist,
+  getPcLink,
+  getPercent,
+  getPriceInfo
+} from "./utils";
 import {shell} from "../context";
 import {CircularProgressWithLabel} from "../components";
 import actions from "./actions";
@@ -27,6 +35,34 @@ function makeFlow(nicks) {
   return action
 }
 
+function makeFlow2(nicks) {
+  let action = shell.Action
+      .updateProgress([nicks]) // => [nick, nick, ...]
+      .InfoFetch.PCollect // => [info, info, ...]
+      .buildExcel(['data', [
+        'nickName', 'id', 'status',
+        'wechat', 'self_intro', 'iphone',
+        'xian', 'ages', 'female', 'item_num',
+          'share_avg', 'comment_avg',
+          'like_avg', 'play_mid',
+          'interact_rate', 'play_over_rate',
+        'private_item_num',
+        'private_share_avg', 'private_comment_avg',
+        'private_like_avg', 'private_play_mid',
+        'private_interact_rate', 'private_play_over_rate',
+          'fans_index', 'cooperate_index',
+          'cp_index', 'price2160', 'price120',
+          'attribution', 'douyin_id', 'douyin_pc_link',
+          'tags_relation', 'expected_play_num',
+          'prospective_20_60_cpm', 'link_convert_index',
+        'link_shopping_index', 'link_spread_index',
+          'link_star_index', 'province', 'city',
+          'gender', 'follower'
+      ]])
+      .download(['vendor.xlsx'])
+  return action
+}
+
 function App() {
   let search = new URLSearchParams(useLocation().search)
   let [loginOk, setLoginOk] = React.useState(false)
@@ -36,7 +72,7 @@ function App() {
   const [contentInfo, setContentInfo] = React.useState({})
   const [linkInfo, setLinkInfo] = React.useState({})
   const [businessInfo, setBusinessInfo] = React.useState({})
-  const [searchNick, setSearchNick] = React.useState("")
+  const [searchNick, setSearchNick] = React.useState("妈耶是只猫")
   const [searchResults, setSearchResults] = React.useState({})
   let [nicks, setNicks] = React.useState('妈耶是只猫')
   let [fetched, setFetched] = React.useState(0)
@@ -102,7 +138,7 @@ function App() {
         setBasicInfo({
           nick_name: baseInfo.nick_name,
           tags_relation: Object.keys(baseInfo.tags_relation),
-          douyin_pc_link: `https://www.douyin.com/user/${baseInfo.sec_uid}`,
+          douyin_pc_link: getPcLink(baseInfo.sec_uid),
           industry_tags: marketingInfo.industry_tags.map(item => item.split('-')[0]),
           price_info: getPriceInfo(marketingInfo.price_info.filter(item => item.enable && item.is_open && item.need_price && item.task_category == 1)),
           self_intro: platformChannelInfo.card_info.self_intro || platformChannelInfoV2.self_intro,
@@ -110,7 +146,7 @@ function App() {
           phone: platformChannelInfo.card_info.phone,
           wechat: platformChannelInfo.card_info.wechat,
         })
-        setPcLink(`https://www.douyin.com/user/${baseInfo.sec_uid}`)
+        setPcLink(getPcLink(baseInfo.sec_uid))
       }}>获取</button>
       <div className="result">
         {JSON.stringify(basicInfo)}
@@ -149,11 +185,15 @@ function App() {
       <h2>连接用户</h2>
       <button onClick={async () => {
         let audienceDist = await getAuthorFansDistributionInfo(id)
+        let fans = await getAuthorDailyFans(id)
         setLinkInfo({
+          fans_index: getFansIndex(fans),
           city: getLinkDist(...audienceDist.distributions.filter(item => item.origin_type == 8)),
           gender: getLinkDist(...audienceDist.distributions.filter(item => item.origin_type == 0)),
           group: getLinkDist(...audienceDist.distributions.filter(item => item.origin_type == 10)),
           device: getLinkDist(...audienceDist.distributions.filter(item => item.origin_type == 3)),
+          ages: getLinkDist(...audienceDist.distributions.filter(item => item.origin_type == 1)),
+          xian: getLinkDist(...audienceDist.distributions.filter(item => item.origin_type == 5)),
         })
       }}>获取</button>
       <div className="result">
@@ -192,7 +232,7 @@ function App() {
       setFetched(0)
       if (nickNames.length === 0)
         return alert('请输入至少一个昵称')
-      let response = await shell.exec(makeFlow(nickNames))
+      let response = await shell.exec(makeFlow2(nickNames))
       console.log(response.json())
     }}>导出</button>
     <CircularProgressWithLabel value={percent} /></>

@@ -49,7 +49,9 @@ export function getLinkDist(dist) {
     return result
 }
 
-export function getDouyinInfo(element) {
+export function getDouyinInfo(page) {
+    let element = document.createElement('div')
+    element.innerHTML = page
     let selector = '#douyin-right-container > div > div > div > div > div > p > '
     let id_data = element.querySelector(`${selector} span:nth-child(1)`).textContent.split('：')
     let attribution_data = element.querySelector(`${selector} span:nth-child(2)`).textContent.split('：')
@@ -57,4 +59,12 @@ export function getDouyinInfo(element) {
         id: id_data[1],
         attribution: attribution_data[1]
     }
+}
+
+export function getPcLink(arg) {
+    return `https://www.douyin.com/user/${arg}`
+}
+
+export function getFansIndex(fans) {
+    return fans.daily[fans.daily.length-1].fans_cnt / fans.daily[0].fans_cnt  - 1
 }
