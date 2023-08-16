@@ -40,12 +40,18 @@ export function getLatest15Description(items) {
     return [play_min, play_max, getPercent(famous / items.length)]
 }
 
-export function getLinkDist(dist) {
+export function getLinkDist(dist, count_by=[]) {
     let total = dist.distribution_list.reduce((c, i) => c + i.distribution_value, 0)
     let result = {}
+    let count = 0
     for (let item of dist.distribution_list) {
         result[item.distribution_key] = getPercent(item.distribution_value / total)
+
+        if (count_by.length && count_by.includes(item.distribution_key)) {
+            count += item.distribution_value
+        }
     }
+    result.count_by = getPercent(count / total)
     return result
 }
 

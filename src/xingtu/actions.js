@@ -87,20 +87,10 @@ async function InfoFetch({meta}, nick) {
 
         let audienceDist = await getAuthorFansDistributionInfo(result.id)
         result.female = getLinkDist(...audienceDist.distributions.filter(item => item.origin_type == 0)).female
-        let ages = getLinkDist(...audienceDist.distributions.filter(item => item.origin_type == 1))
-        result.ages = 0
-        for (let age in ages) {
-            if (['18-23', '24-30', '31-40'].includes(age)) {
-                result.ages += ages[age]
-            }
-        }
-        let xians = getLinkDist(...audienceDist.distributions.filter(item => item.origin_type == 5))
-        result.xian = 0
-        for (let xian in xians) {
-            if (['一线', '二线'].includes(xian)) {
-                result.xian += xians[xian]
-            }
-        }
+        let ages = getLinkDist(...audienceDist.distributions.filter(item => item.origin_type == 1),['18-23', '24-30', '31-40'])
+        result.ages = ages.count_by
+        let xians = getLinkDist(...audienceDist.distributions.filter(item => item.origin_type == 5),['一线', '二线'])
+        result.xian = xians.count_by
         result.iphone = getLinkDist(...audienceDist.distributions.filter(item => item.origin_type == 3)).iPhone
     } else {
         result.status = '没有搜索到这个昵称，只有其他类似结果'
