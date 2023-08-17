@@ -8,6 +8,7 @@ import {getDouyinInfo, getFansIndex, getLinkDist, getPcLink, getPercent, getPric
 
 
 async function InfoFetch({meta}, nick) {
+    this.emit(`uuid.${meta.uuid}:InfoFetching`, {meta, data: {nickName: nick}})
     let result = {nickName: nick}
     let data = await searchNickName(nick)
 

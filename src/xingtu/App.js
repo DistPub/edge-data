@@ -80,6 +80,8 @@ function App() {
   let [percent, setPercent] = React.useState(0)
   let [pcLink, setPcLink] = React.useState('')
   let [douyinInfo, setDouyinInfo] = React.useState({})
+  let [fetchingName, setFetchingName] = React.useState('')
+  let [fetchedName, setFetchedName] = React.useState('')
 
   React.useEffect(() => {
     let data = (fetched/total*100).toFixed(1)
@@ -88,10 +90,14 @@ function App() {
   }, [fetched, total])
 
   function UpdateProgress({meta}, nicks) {
+    this.on(`uuid:${meta.downstream.uuid}:InfoFetching`, ({data, direction}) => {
+      if (direction !== 'upstream') return
+      setFetchingName(data.nickName)
+    })
     this.on(`uuid:${meta.downstream.uuid}:InfoFetched`, ({data, direction}) => {
       if (direction !== 'upstream') return
       setFetched(old => old + 1)
-      console.log(`fetched ${data.nickName}`)
+      setFetchedName(data.nickName)
     })
     return nicks
   }
@@ -235,7 +241,7 @@ function App() {
       let response = await shell.exec(makeFlow2(nickNames))
       console.log(response.json())
     }}>导出</button>
-    <CircularProgressWithLabel value={percent} /></>
+    <CircularProgressWithLabel value={percent} /><span className={"tips"}>正在获取: {fetchingName} / 已获取: {fetchedName}</span></>
 }
 
 export default App;
