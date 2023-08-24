@@ -105,8 +105,8 @@ function App() {
 
   React.useEffect(() => {
     async function check() {
-      setLoginOk(await isLoginOk())
-      setDouyinVerifyOk(await isDouyinVerifyOk())
+      try { setLoginOk(await isLoginOk()) } catch {}
+      try { setDouyinVerifyOk(await isDouyinVerifyOk()) } catch {}
     }
     check()
     shell.installExternalAction(UpdateProgress)
@@ -239,7 +239,18 @@ function App() {
       if (nickNames.length === 0)
         return alert('请输入至少一个昵称')
       let response = await shell.exec(makeFlow2(nickNames))
-      console.log(response.json())
+      if (response.error) {
+        if (response.error.includes("Edge not found for origin: https://www.douyin.com")) {
+          alert('找不到抖音主页，清打开一个抖音主页再重试')
+        }
+        else if (response.error.includes("Edge not found for origin: https://www.xingtu.cn")) {
+          alert('找不到星图页面，清打开一个星图页面再重试')
+        }
+        else if (response.error.includes("抖音验证未通过")) {
+          alert('抖音主页验证不通过，请验证通过后再重试')
+        } else
+        alert('导出异常，请尝试刷新页面重试')
+      }
     }}>导出</button>
     <CircularProgressWithLabel value={percent} /><span className={"tips"}>正在获取: {fetchingName} / 已获取: {fetchedName}</span></>
 }

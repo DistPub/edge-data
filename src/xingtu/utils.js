@@ -74,3 +74,9 @@ export function getPcLink(arg) {
 export function getFansIndex(fans) {
     return fans.daily[fans.daily.length-1].fans_cnt / fans.daily[0].fans_cnt  - 1
 }
+
+export function isDouyinPageOk(page) {
+    let container = document.createElement('div')
+    container.innerHTML = page
+    return container.querySelector('title').innerText !== '验证码中间页'
+}

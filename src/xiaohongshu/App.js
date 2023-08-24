@@ -147,7 +147,10 @@ function App() {
                 if (ids.length === 0)
                     return alert('请输入至少一个pid')
                 let response = await shell.exec(makeFlow(ids))
-                console.log(response.json())
+
+                if (response.error) {
+                    alert('导出异常，请尝试刷新页面重试')
+                }
             }}>导出</button>
             <CircularProgressWithLabel value={percent} />
         </>

@@ -1,6 +1,7 @@
 import {db} from './context'
 import {fetch} from "../context";
 import {cachedData, cacheData} from '../cache';
+import {isDouyinPageOk} from "./utils";
 
 export async function isDouyinVerifyOk() {
     let response = await fetch("https://www.douyin.com/user/MS4wLjABAAAAKEwyE73s1rSCzBML8w2B3l_qpr0m9EzgBOZCRgBYpmQ", {
@@ -9,9 +10,7 @@ export async function isDouyinVerifyOk() {
         "credentials": "include"
     })
     let data = await response.text()
-    let container = document.createElement('div')
-    container.innerHTML = data
-    return container.querySelector('title').innerText !== '验证码中间页'
+    return isDouyinPageOk(data)
 }
 
 export async function isLoginOk() {
@@ -59,6 +58,7 @@ export async function getDouyinPage(pc_link) {
         "credentials": "include"
     })
     data = await response.text()
+    if (!isDouyinPageOk(data)) throw new Error('抖音验证未通过')
     await cacheData(db, prefix, pc_link, data)
     return data
 }

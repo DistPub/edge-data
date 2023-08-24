@@ -152,6 +152,28 @@ class Shell extends EventEmitter{
         const nextAction = cloneDeep(action)
 
         if (!item.response.results.ignore) {
+          let preActionStatus = item.response.status
+
+          // check parallel results
+          let isReduce = nextAction.action === '/ReduceResults'
+          if (isReduce) {
+            preActionStatus = item.response.results.map(x=>x.response.status).reduce((a, b) => a + b, 0)
+          }
+
+          if (preActionStatus !== 0) {
+            let error = item.response.results
+
+            if (isReduce) {
+              error = error.filter(x=>x.response.status!==0).map(x=>x.response.results).join('\n')
+            }
+
+            if (!nextAction.meta.try_repair_error) {
+              throw Error(error)
+            } else {
+              nextAction.meta.error = error
+            }
+          }
+
           let preActionResults = [item.response.results]
 
           if (nextAction.meta.flatPreActionResults) {
@@ -293,7 +315,7 @@ class Shell extends EventEmitter{
     } catch(error) {
       response.response.status = 1
       response.response.results = error.toString()
-      console.error(error.stack)
+      console.error(error?.stack || error)
 
       yield response
       if (!pipe) {

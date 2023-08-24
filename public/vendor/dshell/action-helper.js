@@ -2,7 +2,7 @@ export class ActionHelper {
   constructor(shell, autoPipe=true, pipeOption={}, actions=[], namespace=null) {
     this.shell = shell
     this.autoPipe = autoPipe
-    this.pipeOption = pipeOption
+    this.pipeOption = ActionHelper.ensureOptions(pipeOption)
     this.actions = actions
     this.namespace = namespace
   }
@@ -38,9 +38,9 @@ export class ActionHelper {
 
   static ensureOptions(options) {
     if (options instanceof Array) {
-      return {args: options}
+      options = {args: options}
     }
-    return options
+    return {try_repair_error: false, ...options}
   }
 
   /**

@@ -29,7 +29,12 @@ class ActionResponse {
   }
 
   get ok() {
-    return this.payloads.map(item => item.response.status).reduce((a, b) => a + b, 0) === 0
+    return this._payloads.map(item => item.response.status).reduce((a, b) => a + b, 0) === 0
+  }
+
+  get error() {
+    if (this.ok) return undefined
+    return [...this._payloads.filter(x=>x.response.status!==0)][0].response.results
   }
 
   text() {
