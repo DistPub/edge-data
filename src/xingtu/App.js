@@ -80,7 +80,7 @@ function App() {
   let [percent, setPercent] = React.useState(0)
   let [pcLink, setPcLink] = React.useState('')
   let [douyinInfo, setDouyinInfo] = React.useState({})
-  let [fetchingName, setFetchingName] = React.useState('')
+  let [fetchingNames, setFetchingNames] = React.useState([])
   let [fetchedName, setFetchedName] = React.useState('')
 
   React.useEffect(() => {
@@ -92,11 +92,12 @@ function App() {
   function UpdateProgress({meta}, nicks) {
     this.on(`uuid:${meta.downstream.uuid}:InfoFetching`, ({data, direction}) => {
       if (direction !== 'upstream') return
-      setFetchingName(data.nickName)
+      setFetchingNames(old => [...old, data.nickName])
     })
     this.on(`uuid:${meta.downstream.uuid}:InfoFetched`, ({data, direction}) => {
       if (direction !== 'upstream') return
       setFetched(old => old + 1)
+      setFetchingNames(old => old.filter(item => item !== data.nickName))
       setFetchedName(data.nickName)
     })
     return nicks
@@ -252,7 +253,7 @@ function App() {
         alert('导出异常，请尝试刷新页面重试')
       }
     }}>导出</button>
-    <CircularProgressWithLabel value={percent} /><span className={"tips"}>正在获取: {fetchingName} / 已获取: {fetchedName}</span></>
+    <CircularProgressWithLabel value={percent} /><span className={"tips"}>正在获取: {JSON.stringify(fetchingNames)} / 已获取: {fetchedName}</span></>
 }
 
 export default App;
