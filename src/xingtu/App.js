@@ -82,6 +82,8 @@ function App() {
   let [douyinInfo, setDouyinInfo] = React.useState({})
   let [fetchingNames, setFetchingNames] = React.useState([])
   let [fetchedName, setFetchedName] = React.useState('')
+  const fetchingNamesRef = React.useRef();
+  fetchingNamesRef.current = fetchingNames
 
   React.useEffect(() => {
     let data = (fetched/total*100).toFixed(1)
@@ -250,7 +252,7 @@ function App() {
         else if (response.error.includes("抖音验证未通过")) {
           alert('抖音主页验证不通过，请验证通过后再重试')
         } else
-        alert(`导出${JSON.stringify(fetchingNames)}异常，请尝试刷新页面重试`)
+        alert(`导出${JSON.stringify(fetchingNamesRef.current)}异常，请尝试刷新页面重试`)
       }
     }}>导出</button>
     <CircularProgressWithLabel value={percent} /><span className={"tips"}>正在获取: {JSON.stringify(fetchingNames)} / 已获取: {fetchedName}</span></>
