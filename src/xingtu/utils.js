@@ -59,11 +59,19 @@ export function getDouyinInfo(page) {
     let element = document.createElement('div')
     element.innerHTML = page
     let selector = '#douyin-right-container > div > div > div > div > div > p > '
-    let id_data = element.querySelector(`${selector} span:nth-child(1)`).textContent.split('：')
-    let attribution_data = element.querySelector(`${selector} span:nth-child(2)`).textContent.split('：')
+    let id_data = element.querySelector(`${selector} span:nth-child(1)`)
+    if (id_data)
+        id_data = id_data.textContent.split('：')[1]
+    else
+        id_data = '未知'
+    let attribution_data = element.querySelector(`${selector} span:nth-child(2)`)
+    if(attribution_data)
+        attribution_data = attribution_data.textContent.split('：')[1]
+    else
+        attribution_data = '未知'
     return {
-        id: id_data[1],
-        attribution: attribution_data[1]
+        id: id_data,
+        attribution: attribution_data
     }
 }
 
