@@ -154,6 +154,7 @@ function App() {
           email: platformChannelInfo.card_info.email,
           phone: platformChannelInfo.card_info.phone,
           wechat: platformChannelInfo.card_info.wechat,
+          mcn: platformChannelInfo.card_info?.mcn_info?.mcn_name
         })
         setPcLink(getPcLink(baseInfo.sec_uid))
       }}>获取</button>
