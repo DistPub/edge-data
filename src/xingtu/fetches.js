@@ -1,7 +1,7 @@
 import {db} from './context'
 import {fetch} from "../context";
 import {cachedData, cacheData} from '../cache';
-import {isDouyinPageOk} from "./utils";
+import {isDouyinPageOk, getTagIds} from "./utils";
 
 export async function isDouyinVerifyOk() {
     let response = await fetch("https://www.douyin.com/user/MS4wLjABAAAAKEwyE73s1rSCzBML8w2B3l_qpr0m9EzgBOZCRgBYpmQ", {
@@ -222,5 +222,65 @@ export async function searchNickName(nick) {
     });
     data = await response.json()
     await cacheData(db, prefix, nick, data)
+    return data
+}
+
+export async function searchTagName(tag) {
+    let prefix = 'search_tag'
+    let data = await cachedData(db, prefix, tag)
+
+    if (data) return data
+
+    let payload = {
+        "scene_param": {
+            "platform_source": 1,
+            "search_scene": 1,
+            "display_scene": 1,
+            "task_category": 1,
+            "marketing_target": 1,
+            "first_industry_id": 0
+        },
+        "page_param": {
+            "page": "1",
+            "limit": "30"
+        },
+        "sort_param": {
+            "sort_field": {
+                "field_name": "score"
+            },
+            "sort_type": 2
+        },
+        "attribute_filter": [
+            {
+                "field": {
+                    "field_name": "tag"
+                },
+                "field_value": getTagIds(tag)
+            },
+            {
+                "field": {
+                    "field_name": "price_by_video_type__ge",
+                    "rel_id": "2"
+                },
+                "field_value": "0"
+            }
+        ],
+        "search_param": {
+            "seach_type": 3,
+            "time_range_days": 180,
+            "is_new_content_query": true
+        }
+    }
+    let response = await fetch("https://www.xingtu.cn/gw/api/gsearch/search_for_author_square", {
+        "body": JSON.stringify(payload),
+        "method": "POST",
+        "mode": "cors",
+        "credentials": "include",
+        "headers": {
+          "agw-js-conv": "str"
+        }
+    });
+    data = await response.json()
+    await cacheData(db, prefix, tag, data)
     return data
 }

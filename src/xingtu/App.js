@@ -8,7 +8,8 @@ import {
   getAuthorShowItems,
   getAuthorSpreadInfo, getDouyinPage, isDouyinVerifyOk,
   isLoginOk,
-  searchNickName
+  searchNickName,
+  searchTagName
 } from "./fetches";
 import {useLocation} from "react-router-dom";
 import {
@@ -73,6 +74,7 @@ function App() {
   const [linkInfo, setLinkInfo] = React.useState({})
   const [businessInfo, setBusinessInfo] = React.useState({})
   const [searchNick, setSearchNick] = React.useState("妈耶是只猫")
+  const [searchTag, setSearchTag] = React.useState("二次元-全部")
   const [searchResults, setSearchResults] = React.useState({})
   let [nicks, setNicks] = React.useState('妈耶是只猫')
   let [fetched, setFetched] = React.useState(0)
@@ -130,6 +132,19 @@ function App() {
           setSearchResults(data.authors[0])
         } else {
           alert('没有搜索到这个昵称，只有其他类似结果')
+        }
+      }}>获取</button>
+
+      <h2>搜索达人类型</h2>
+      <input type="text" placeholder="请输入达人类型" value={searchTag} onChange={event => setSearchTag(event.target.value)} />
+      <button onClick={async () => {
+        let data = await searchTagName(searchTag)
+
+        if (data.authors.length === 0) {
+          alert('没有搜索到任何结果')
+        } else {
+          setId(data.authors[0].attribute_datas.id)
+          setSearchResults(data.authors[0])
         }
       }}>获取</button>
       <div className="result">

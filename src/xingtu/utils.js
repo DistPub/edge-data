@@ -1,3 +1,5 @@
+import { TAGS } from "./consts"
+
 export function getPriceInfo(prices) {
     return prices.map(item => {
         return {
@@ -87,4 +89,10 @@ export function isDouyinPageOk(page) {
     let container = document.createElement('div')
     container.innerHTML = page
     return container.querySelector('title').innerText !== '验证码中间页'
+}
+
+export function getTagIds(tag) {
+  return JSON.stringify(tag.split(',').map(item => {
+    return TAGS[item]
+  }))
 }
