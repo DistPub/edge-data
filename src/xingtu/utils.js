@@ -92,7 +92,13 @@ export function isDouyinPageOk(page) {
 }
 
 export function getTagIds(tag) {
-  return JSON.stringify(tag.split(',').map(item => {
+  return tag.split(',').filter(item => item.endsWith('-全部')).map(item => {
     return TAGS[item]
-  }))
+  })
+}
+
+export function getTagLevelTwoIds(tag) {
+  return tag.split(',').filter(item => !item.endsWith('-全部')).map(item => {
+    return TAGS[item]
+  })
 }

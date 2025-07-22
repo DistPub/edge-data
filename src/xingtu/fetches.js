@@ -1,7 +1,8 @@
 import {db} from './context'
 import {fetch} from "../context";
 import {cachedData, cacheData} from '../cache';
-import {isDouyinPageOk, getTagIds} from "./utils";
+import {isDouyinPageOk, getTagIds, getTagLevelTwoIds} from "./utils";
+import { TAGS } from './consts';
 
 export async function isDouyinVerifyOk() {
     let response = await fetch("https://www.douyin.com/user/MS4wLjABAAAAKEwyE73s1rSCzBML8w2B3l_qpr0m9EzgBOZCRgBYpmQ", {
@@ -230,7 +231,25 @@ export async function searchTagName(tag) {
     let data = await cachedData(db, prefix, tag)
 
     if (data) return data
-
+    const options = await getSearchOptions()
+    for (const key in options.data) {
+      if (key == 'content_tag_v2') {
+        const twoLevelOptions = JSON.parse(options['data'][key])
+        for (const option of twoLevelOptions) {
+          // first
+          const firstValue = parseInt(Object.keys(option.first).pop())
+          const firstName = Object.values(option.first).pop()
+          TAGS[`${firstName}-全部`] = firstValue
+          // second
+          for (const secondOption of option.second) {
+            const secondValue = parseInt(Object.keys(secondOption).pop())
+            const secondName = Object.values(secondOption).pop()
+            TAGS[`${firstName}-${secondName}`] = secondValue
+          }
+        }
+      }
+    }
+    console.log(TAGS)
     let payload = {
         "scene_param": {
             "platform_source": 1,
@@ -253,12 +272,6 @@ export async function searchTagName(tag) {
         "attribute_filter": [
             {
                 "field": {
-                    "field_name": "tag"
-                },
-                "field_value": getTagIds(tag)
-            },
-            {
-                "field": {
                     "field_name": "price_by_video_type__ge",
                     "rel_id": "2"
                 },
@@ -270,6 +283,24 @@ export async function searchTagName(tag) {
             "time_range_days": 180,
             "is_new_content_query": true
         }
+    }
+    const tagIds = getTagIds(tag)
+    const tagLevelTwoIds = getTagLevelTwoIds(tag)
+    if (tagIds) {
+        payload.attribute_filter.push({
+            "field": {
+                "field_name": "tag"
+            },
+            "field_value": JSON.stringify(tagIds)
+        })
+    }
+    if (tagLevelTwoIds) {
+        payload.attribute_filter.push({
+            "field": {
+                "field_name": "tag_level_two"
+            },
+            "field_value": JSON.stringify(tagLevelTwoIds)
+        })
     }
     let response = await fetch("https://www.xingtu.cn/gw/api/gsearch/search_for_author_square", {
         "body": JSON.stringify(payload),
@@ -283,4 +314,23 @@ export async function searchTagName(tag) {
     data = await response.json()
     await cacheData(db, prefix, tag, data)
     return data
+}
+
+export async function getSearchOptions() {
+  let prefix = 'search_options'
+  let data = await cachedData(db, prefix, '')
+
+  if (data) return data
+
+  let response = await fetch("https://www.xingtu.cn/gw/api/fe_common_service/author_options/market_fields?market_scene=1", {
+      "method": "GET",
+      "mode": "cors",
+      "credentials": "include",
+      "headers": {
+        "agw-js-conv": "str"
+      }
+  });
+  data = await response.json()
+  await cacheData(db, prefix, '', data)
+  return data
 }
