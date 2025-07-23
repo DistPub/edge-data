@@ -226,11 +226,11 @@ export async function searchNickName(nick) {
     return data
 }
 
-export async function searchTagName(tag) {
+export async function searchTagName(tag, page=1) {
     let prefix = 'search_tag'
     let data = await cachedData(db, prefix, tag)
 
-    if (data) return data
+    if (data) return [data, data.pagination.has_more]
     const options = await getSearchOptions()
     for (const key in options.data) {
       if (key == 'content_tag_v2') {
@@ -249,7 +249,6 @@ export async function searchTagName(tag) {
         }
       }
     }
-    console.log(TAGS)
     let payload = {
         "scene_param": {
             "platform_source": 1,
@@ -260,7 +259,7 @@ export async function searchTagName(tag) {
             "first_industry_id": 0
         },
         "page_param": {
-            "page": "1",
+            "page": `${page}`,
             "limit": "30"
         },
         "sort_param": {
@@ -313,7 +312,7 @@ export async function searchTagName(tag) {
     });
     data = await response.json()
     await cacheData(db, prefix, tag, data)
-    return data
+    return [data, data.pagination.has_more]
 }
 
 export async function getSearchOptions() {

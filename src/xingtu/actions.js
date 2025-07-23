@@ -2,10 +2,53 @@ import {
     getAuthorBaseInfo, getAuthorDailyFans, getAuthorFansDistributionInfo, getAuthorLinkInfo, getAuthorMarketingInfo,
     getAuthorPlatformChannelInfo,
     getAuthorPlatformChannelInfoV2, getAuthorSpreadInfo, getDouyinPage,
-    searchNickName
+    searchNickName,
+    searchTagName
 } from "./fetches";
 import {getDouyinInfo, getFansIndex, getLinkDist, getPcLink, getPercent, getPriceInfo} from "./utils";
 
+
+async function* TagFetch({ meta }, tag) {
+  let has_more = true
+  let page = 1
+  let data;
+  while (has_more) {
+    [data, has_more] = await searchTagName(tag, page++)
+    this.emit(`uuid.${meta.uuid}:TagFetchTarget`, {direction: 'upstream', meta, data: {
+      size: data.authors.length,
+      page: page-1
+    }})
+
+
+    for (const author of data.authors) {
+      this.emit(`uuid.${meta.uuid}:TagFetchTargetAuthor`, {direction: 'upstream', meta, data: {
+        author
+      }})
+      yield author
+    }
+  }
+}
+Object.defineProperty(TagFetch, 'name', {value: 'TagFetch'})
+
+async function AuthorInfoFetch({meta}, author) {
+  let result = {
+    id: author.attribute_datas.id,
+    nickName: author.attribute_datas.nick_name,
+    follower: author.attribute_datas.follower,
+  }
+  let data;
+  data = await getAuthorPlatformChannelInfo(result.id)
+  result.wechat = data?.card_info?.wechat
+  result.self_intro = data?.card_info?.self_intro
+  result.mcn = data.card_info?.mcn_info?.mcn_name
+
+  if (!result.self_intro) {
+      data = await getAuthorPlatformChannelInfoV2(result.id)
+      result.self_intro = data.self_intro
+  }
+  return result
+}
+Object.defineProperty(AuthorInfoFetch, 'name', {value: 'AuthorInfoFetch'})
 
 async function InfoFetch({meta}, nick) {
     this.emit(`uuid.${meta.uuid}:InfoFetching`, {meta, data: {nickName: nick}})
@@ -101,4 +144,4 @@ async function InfoFetch({meta}, nick) {
 }
 Object.defineProperty(InfoFetch, 'name', {value: 'InfoFetch'})
 
-export default [InfoFetch]
+export default [InfoFetch, TagFetch, AuthorInfoFetch]

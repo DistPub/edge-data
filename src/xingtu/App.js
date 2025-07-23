@@ -64,6 +64,21 @@ function makeFlow2(nicks) {
   return action
 }
 
+function makeFlow3(tag) {
+  let action = shell.Action
+      .updateProgress([tag]) // => [nick, nick, ...]
+      .TagFetch
+      .Map
+      .AuthorInfoFetch
+      .Collect // => [info, info, ...]
+      .buildExcel(['data', [
+        'nickName', 'id',
+        'wechat', 'self_intro', 'mcn', 'follower'
+      ]])
+      .download(['vendor.xlsx'])
+  return action
+}
+
 function App() {
   let search = new URLSearchParams(useLocation().search)
   let [loginOk, setLoginOk] = React.useState(false)
@@ -77,6 +92,7 @@ function App() {
   const [searchTag, setSearchTag] = React.useState("二次元-全部")
   const [searchResults, setSearchResults] = React.useState({})
   let [nicks, setNicks] = React.useState('妈耶是只猫')
+  let [tagNames, setTagNames] = React.useState('二次元-全部')
   let [fetched, setFetched] = React.useState(0)
   let [total, setTotal] = React.useState(0)
   let [percent, setPercent] = React.useState(0)
@@ -103,6 +119,16 @@ function App() {
       setFetched(old => old + 1)
       setFetchingNames(old => old.filter(item => item !== data.nickName))
       setFetchedName(data.nickName)
+    })
+    this.on(`uuid:${meta.downstream.uuid}:TagFetchTarget`, ({ data, direction }) => {
+      if (direction !== 'upstream') return
+      setFetchingNames(`第${data.page}页，共${data.size}条`)
+      setTotal(old => old + data.size)
+    })
+    this.on(`uuid:${meta.downstream.uuid}:TagFetchTargetAuthor`, ({ data, direction }) => {
+      if (direction !== 'upstream') return
+      setFetched(old => old + 1)
+      setFetchedName(data.author.attribute_datas.nick_name)
     })
     return nicks
   }
@@ -138,7 +164,7 @@ function App() {
       <h2>搜索达人类型</h2>
       <input type="text" placeholder="请输入达人类型" value={searchTag} onChange={event => setSearchTag(event.target.value)} />
       <button onClick={async () => {
-        let data = await searchTagName(searchTag)
+        let [data, _] = await searchTagName(searchTag)
 
         if (data.authors.length === 0) {
           alert('没有搜索到任何结果')
@@ -248,6 +274,25 @@ function App() {
     <h2>抖音主页验证 { douyinVerifyOk ? "成功" : "失败" }</h2>
     {search.get('debug') && debug}
     <h2>批量导出数据</h2>
+    <h3>通过达人类型导出数据</h3>
+    <div><input placeholder='请输入达人类型，多个通过英文逗号,分隔' value={tagNames} onChange={
+      event => setTagNames(event.target.value)
+    }/></div>
+    <button onClick={async ()=> {
+      const tagNameList = tagNames.split(',').filter(item => item.length > 0)
+      setTotal(0)
+      setFetched(0)
+      if (tagNameList.length === 0)
+        return alert('请输入至少一个达人类型')
+      let response = await shell.exec(makeFlow3(tagNames))
+      if (response.error) {
+        if (response.error.includes("Edge not found for origin: https://www.xingtu.cn")) {
+          alert('找不到星图页面，清打开一个星图页面再重试')
+        } else
+        alert(`导出${JSON.stringify(fetchingNamesRef.current)}异常，请尝试刷新页面重试`)
+      }
+    }}>导出</button>
+    <h3>通过昵称导出数据</h3>
     <div><textarea placeholder='请输入昵称，一行一个' value={nicks} onChange={
       event => setNicks(event.target.value)
     }></textarea></div>
@@ -271,7 +316,8 @@ function App() {
         alert(`导出${JSON.stringify(fetchingNamesRef.current)}异常，请尝试刷新页面重试`)
       }
     }}>导出</button>
-    <CircularProgressWithLabel value={percent} /><span className={"tips"}>正在获取: {JSON.stringify(fetchingNames)} / 已获取: {fetchedName}</span></>
+    <CircularProgressWithLabel value={percent} /><span className={"tips"}>正在获取: {JSON.stringify(fetchingNames)} / 已获取: {fetchedName}</span>
+  </>
 }
 
 export default App;
