@@ -307,7 +307,7 @@ export async function getSearchOptions() {
   let prefix = 'search_options'
   let data = await cachedData(db, prefix, '')
 
-  if (data) return data
+  if (data && Object.keys(TAGS).length>0) return data
 
   let response = await fetch("https://www.xingtu.cn/gw/api/fe_common_service/author_options/market_fields?market_scene=1", {
       "method": "GET",
