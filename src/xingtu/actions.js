@@ -45,6 +45,8 @@ async function AuthorInfoFetch({meta}, author) {
   if (!result.self_intro) {
       data = await getAuthorPlatformChannelInfoV2(result.id)
       result.self_intro = data.self_intro
+      result.wechat = data?.wechat
+      result.mcn = data?.mcn_info?.mcn_name
   }
   return result
 }

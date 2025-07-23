@@ -109,7 +109,12 @@ export async function getAuthorPlatformChannelInfo(id) {
         "mode": "cors",
         "credentials": "include"
     });
-    data = await response.json()
+    try {
+      data = await response.json()
+    } catch (e) {
+      console.error(`获取作者${id}的名片信息失败`, e)
+      return {}
+    }
     await cacheData(db, prefix, id, data)
     return data
 }
@@ -228,27 +233,10 @@ export async function searchNickName(nick) {
 
 export async function searchTagName(tag, page=1) {
     let prefix = 'search_tag'
-    let data = await cachedData(db, prefix, tag)
+    let data = await cachedData(db, prefix, `${tag}-${page}`)
 
     if (data) return [data, data.pagination.has_more]
-    const options = await getSearchOptions()
-    for (const key in options.data) {
-      if (key == 'content_tag_v2') {
-        const twoLevelOptions = JSON.parse(options['data'][key])
-        for (const option of twoLevelOptions) {
-          // first
-          const firstValue = parseInt(Object.keys(option.first).pop())
-          const firstName = Object.values(option.first).pop()
-          TAGS[`${firstName}-全部`] = firstValue
-          // second
-          for (const secondOption of option.second) {
-            const secondValue = parseInt(Object.keys(secondOption).pop())
-            const secondName = Object.values(secondOption).pop()
-            TAGS[`${firstName}-${secondName}`] = secondValue
-          }
-        }
-      }
-    }
+    await getSearchOptions()
     let payload = {
         "scene_param": {
             "platform_source": 1,
@@ -311,7 +299,7 @@ export async function searchTagName(tag, page=1) {
         }
     });
     data = await response.json()
-    await cacheData(db, prefix, tag, data)
+    await cacheData(db, prefix, `${tag}-${page}`, data)
     return [data, data.pagination.has_more]
 }
 
@@ -330,6 +318,24 @@ export async function getSearchOptions() {
       }
   });
   data = await response.json()
+  const options = data
+  for (const key in options.data) {
+    if (key == 'content_tag_v2') {
+      const twoLevelOptions = JSON.parse(options['data'][key])
+      for (const option of twoLevelOptions) {
+        // first
+        const firstValue = parseInt(Object.keys(option.first).pop())
+        const firstName = Object.values(option.first).pop()
+        TAGS[`${firstName}-全部`] = firstValue
+        // second
+        for (const secondOption of option.second) {
+          const secondValue = parseInt(Object.keys(secondOption).pop())
+          const secondName = Object.values(secondOption).pop()
+          TAGS[`${firstName}-${secondName}`] = secondValue
+        }
+      }
+    }
+  }
   await cacheData(db, prefix, '', data)
   return data
 }
