@@ -263,6 +263,30 @@ export async function searchTagName(tag, page=1) {
                     "rel_id": "2"
                 },
                 "field_value": "0"
+            },
+            {
+                "field": {
+                    "field_name": "link_link_cnt_by_industry__ge"
+                },
+                "field_value": "0"
+            },
+            {
+                "field": {
+                    "field_name": "link_link_cnt_by_industry__le"
+                },
+                "field_value": "999990000"
+            },
+            {
+                "field": {
+                    "field_name": "sn_expected_play_num__ge"
+                },
+                "field_value": "300000"
+            },
+            {
+                "field": {
+                    "field_name": "sn_expected_play_num__le"
+                },
+                "field_value": "999990000"
             }
         ],
         "search_param": {
