@@ -280,7 +280,7 @@ export async function searchTagName(tag, page=1) {
                 "field": {
                     "field_name": "sn_expected_play_num__ge"
                 },
-                "field_value": "500000"
+                "field_value": "300000"
             },
             {
                 "field": {
